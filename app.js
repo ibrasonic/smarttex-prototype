@@ -941,7 +941,19 @@ function renderSales() {
 }
 
 function renderTransfers() {
-  const lowItems = state.inventory.filter((item) => item.showroom <= state.thresholds.showroom);
+  const transferAlerts = state.alerts.filter(
+    (alert) => alert.type === "transfer" && alert.audience.includes("sales")
+  );
+  const lowItems = state.inventory.filter(
+    (item) =>
+      item.warehouse > 0
+      && (
+        item.showroom <= state.thresholds.showroom
+        || transferAlerts.some(
+          (alert) => alert.detail.includes(item.fabric) && alert.detail.includes(item.color)
+        )
+      )
+  );
   return `
     ${intro("Showroom replenishment", "Transfer stock from the warehouse when showroom stock reaches the configured threshold.")}
     <section class="panel">
@@ -950,15 +962,15 @@ function renderTransfers() {
           <caption>Items requiring showroom replenishment</caption>
           <thead><tr><th>Fabric / color</th><th>Showroom</th><th>Warehouse</th><th>Suggested transfer</th><th>Action</th></tr></thead>
           <tbody>
-            ${lowItems.map((item) => `
+            ${lowItems.length ? lowItems.map((item) => `
               <tr>
                 <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
                 <td>${item.showroom} m</td>
                 <td>${item.warehouse} m</td>
                 <td>${Math.min(50, item.warehouse)} m</td>
-                <td><button class="button" data-action="transfer" data-id="${item.id}" ${item.warehouse === 0 ? "disabled" : ""}>Transfer stock</button></td>
+                <td><button class="button" data-action="transfer" data-id="${item.id}">Transfer stock</button></td>
               </tr>
-            `).join("")}
+            `).join("") : `<tr><td colspan="5">${emptyState("لا توجد تحويلات مطلوبة", "لا توجد خامات منخفضة في المعرض ولها رصيد متاح في المخزن.")}</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -2330,6 +2342,10 @@ function confirmSale(id) {
 
 function transferStock(id) {
   const item = state.inventory.find((record) => record.id === id);
+  if (!item || item.warehouse <= 0) {
+    showToast("التحويل غير متاح", "لا يوجد رصيد متاح في المخزن لهذه الخامة.");
+    return;
+  }
   const suggestion = Math.min(50, item.warehouse);
   openModal({
     title: "تحويل مخزون إلى المعرض",
@@ -2345,6 +2361,10 @@ function transferStock(id) {
   });
   document.querySelector("#confirm-transfer").addEventListener("click", () => {
     const meters = Number(document.querySelector("#transfer-meters").value);
+    if (!Number.isFinite(meters) || meters <= 0 || meters > item.warehouse) {
+      showToast("كمية التحويل غير صحيحة", `أدخل كمية بين 1 و${item.warehouse} مترًا.`);
+      return;
+    }
     item.showroom += meters;
     item.warehouse -= meters;
     if (item.warehouse <= state.thresholds.lastPull) {
@@ -2359,6 +2379,14 @@ function transferStock(id) {
       );
     }
     completeCurrentQueuedAlert(["transfer"]);
+    state.alerts = state.alerts.filter(
+      (alert) => !(
+        alert.type === "transfer"
+        && alert.audience.includes("sales")
+        && alert.detail.includes(item.fabric)
+        && alert.detail.includes(item.color)
+      )
+    );
     saveState();
     closeModal();
     render();
