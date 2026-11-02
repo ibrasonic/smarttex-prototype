@@ -851,7 +851,7 @@ function renderInventory() {
       <div class="table-wrap">
         <table>
           <caption>مقارنة الرصيد الحالي بمستوى إعادة الطلب</caption>
-          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>المعروض في المحل</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
           <tbody>
             ${state.inventory.map((item) => {
               const {
@@ -877,6 +877,7 @@ function renderInventory() {
                 <tr>
                   <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
                   <td><strong>${total} مترًا</strong><br><small>المعرض ${item.showroom} + المخزن ${item.warehouse}</small></td>
+                  <td><strong>${item.showroom} مترًا</strong><br><small>يُخصم منه البيع المؤكد</small></td>
                   <td>${supplier
                     ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا احتياطيًا</small>`
                     : `<strong>غير محسوب</strong><br><small>مدة التوريد غير متاحة</small>`}</td>
