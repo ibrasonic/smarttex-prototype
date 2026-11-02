@@ -877,7 +877,7 @@ function renderInventory() {
                 <tr>
                   <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
                   <td><strong>${warehouseAvailable} مترًا</strong></td>
-                  <td><strong>${item.showroom} مترًا</strong><br><small>يُخصم منه البيع المؤكد</small></td>
+                  <td><strong>${item.showroom} مترًا</strong></td>
                   <td>${supplier
                     ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا حد آخر سحبة</small>`
                     : `<strong>غير محسوب</strong><br><small>مدة التوريد غير متاحة</small>`}</td>
