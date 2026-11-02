@@ -890,13 +890,9 @@ function renderInventory() {
                         : `فائض ${difference} مترًا`}</td>
                   <td>${supplier ? `${supplier.leadDays} يومًا · ${supplier.name}` : "لا يوجد مورد مسجل"}</td>
                   <td><span class="status ${!supplier || needsReorder ? "status-critical" : difference <= state.thresholds.lastPull ? "status-urgent" : "status-approved"}">${!supplier ? "فجوة مورد" : needsReorder ? "ابدأ إعادة الطلب" : difference <= state.thresholds.lastPull ? "تحت المتابعة" : "مستقر"}</span></td>
-                  <td>${!supplier
-                    ? "يجب تسجيل مورد"
-                    : reorderAlert
+                  <td>${reorderAlert
                     ? `<button class="button button-secondary" type="button" data-action="manage-alert" data-id="${reorderAlert.id}">إدارة إعادة الطلب</button>`
-                    : needsReorder
-                      ? `<button class="button button-secondary" type="button" data-action="create-reorder" data-id="${item.id}">إنشاء طلب إعادة</button>`
-                      : "لا يوجد إجراء"}</td>
+                    : `<button class="button button-secondary" type="button" data-action="create-reorder" data-id="${item.id}">إنشاء طلب إعادة</button>`}</td>
                 </tr>
               `;
             }).join("")}
@@ -1838,11 +1834,12 @@ function createReorderFromInventory(itemId) {
     return;
   }
   const plan = buildReorderPlan(item);
+  const proactive = plan.difference === null || plan.difference > 0;
   const alert = {
     id: Date.now(),
     audience: ["inventory"],
-    severity: "urgent",
-    title: "إعادة الطلب مطلوبة للحفاظ على التوفر",
+    severity: proactive ? "approaching" : "urgent",
+    title: proactive ? "طلب إعادة استباقي" : "إعادة الطلب مطلوبة للحفاظ على التوفر",
     detail: `${item.fabric} · ${item.color} · التغطية الحالية ${plan.daysToStockout} أيام · المورد الموصى به يحتاج ${plan.leadDays || "مدة غير مسجلة"} أيام`,
     action: "إدارة إعادة الطلب",
     type: "reorder",
@@ -1926,9 +1923,9 @@ function manageAlert(id) {
         <p>${alert.detail}</p>
         <div class="form-grid">
           <label class="field"><span>الرصيد الحالي بالمخزن</span><input value="${plan.warehouseAvailable} مترًا" readonly></label>
-          <label class="field"><span>المعروض في المحل</span><input value="${item.showroom} مترًا — لا يدخل في حساب إعادة الطلب" readonly></label>
-          <label class="field"><span>حد بدء إعادة الطلب</span><input value="${plan.reorderLevel} مترًا" readonly></label>
-          <label class="field"><span>الموقف من الحد</span><input value="${plan.difference < 0 ? `عجز ${Math.abs(plan.difference)} مترًا` : plan.difference === 0 ? "وصل إلى الحد" : `فائض ${plan.difference} مترًا`}" readonly></label>
+          <label class="field"><span>المعروض في المحل</span><input value="${item.showroom} مترًا" readonly></label>
+          <label class="field"><span>حد بدء إعادة الطلب</span><input value="${plan.reorderLevel === null ? "غير محسوب" : `${plan.reorderLevel} مترًا`}" readonly></label>
+          <label class="field"><span>الموقف من الحد</span><input value="${plan.difference === null ? "غير متاح حتى تسجيل مورد" : plan.difference < 0 ? `عجز ${Math.abs(plan.difference)} مترًا` : plan.difference === 0 ? "وصل إلى الحد" : `فائض ${plan.difference} مترًا`}" readonly></label>
           <label class="field"><span>متوسط المبيعات اليومية</span><input value="${item.rate} متر يوميًا" readonly></label>
           <label class="field"><span>تغطية المخزون الحالية</span><input value="${plan.daysToStockout} أيام" readonly></label>
           <label class="field"><span>المورد المؤهل الأسرع</span><input value="${plan.supplier?.name || "لا يوجد مورد مسجل لهذه الخامة"}" readonly></label>
