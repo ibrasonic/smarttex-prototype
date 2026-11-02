@@ -1,4 +1,4 @@
-const STORAGE_KEY = "smarttex-system";
+const STORAGE_KEY = "smarttex-system-v2";
 const CRITICAL_SEEN_KEY = "smarttex-critical-alerts-seen";
 const launchParameters = new URLSearchParams(window.location.search);
 
