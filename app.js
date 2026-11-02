@@ -1065,6 +1065,12 @@ function renderPurchasing() {
 }
 
 function renderInvoices() {
+  const installmentRows = state.invoices.flatMap((invoice) => {
+    const rows = invoice.installmentRows?.length
+      ? invoice.installmentRows
+      : [{ number: 1, amount: invoice.total, due: invoice.due, status: invoice.status }];
+    return rows.map((installment) => ({ invoice, installment }));
+  });
   return `
     ${intro(
       "إدارة أقساط أوامر الشراء والمدفوعات",
@@ -1074,19 +1080,18 @@ function renderInvoices() {
     <section class="panel">
       <div class="table-wrap">
         <table>
-          <caption>جداول أقساط أوامر الشراء والمدفوعات</caption>
-          <thead><tr><th>الجدول</th><th>المورد / أمر الشراء</th><th>عدد الأقساط</th><th>الإجمالي</th><th>المدفوع</th><th>الاستحقاق التالي</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+          <caption>أقساط أوامر الشراء والمدفوعات</caption>
+          <thead><tr><th>الجدول</th><th>القسط</th><th>المورد / أمر الشراء</th><th>المبلغ</th><th>الموعد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
           <tbody>
-            ${state.invoices.map((invoice) => `
+            ${installmentRows.map(({ invoice, installment }) => `
               <tr>
                 <td><strong>${invoice.id}</strong></td>
+                <td>${installment.number} من ${invoice.installments || 1}</td>
                 <td>${invoice.supplier}<br><small>${invoice.po}</small></td>
-                <td>${invoice.installments || 1}<br><small>${invoice.cadence || "تواريخ مخصصة"}</small></td>
-                <td>${money(invoice.total)}</td>
-                <td>${money(invoice.paid)}</td>
-                <td>${invoice.due}</td>
-                <td><span class="status ${statusClass(invoice.status)}">${invoice.status}</span></td>
-                <td><button class="button button-secondary" data-action="manage-invoice" data-id="${invoice.id}">إدارة الأقساط</button></td>
+                <td>${money(installment.amount)}</td>
+                <td>${installment.due}</td>
+                <td><span class="status ${statusClass(installment.status)}">${installment.status}</span></td>
+                <td><button class="button button-secondary" data-action="manage-invoice" data-id="${invoice.id}" data-installment="${installment.number}">${installment.status === "لم يرسل للمالك" ? "إدارة القسط" : "عرض الجدول"}</button></td>
               </tr>
             `).join("")}
           </tbody>
@@ -1405,7 +1410,7 @@ function handleAction(action, data = {}) {
     "new-po": () => openNewPO(),
     "new-po-from-request": () => openNewPO(data.id),
     "manage-po": () => managePO(data.id),
-    "manage-invoice": () => manageInvoice(data.id),
+    "manage-invoice": () => manageInvoice(data.id, "", Number(data.installment) || null),
     "receive-shipment": openReceiving,
     "resolve-receipt": () => resolveReceipt(data.id),
     "manage-approval": () => manageApproval(data.id),
@@ -2716,10 +2721,15 @@ function openInstallmentSchedule(preselectedPoId = "") {
   });
 }
 
-function manageInvoice(id, alertStage = "") {
+function manageInvoice(id, alertStage = "", selectedInstallmentNumber = null) {
   const invoice = state.invoices.find((item) => item.id === id);
   const installmentRows = invoice.installmentRows || [];
-  const requestableInstallment = installmentRows.find((installment) => installment.status === "لم يرسل للمالك");
+  const selectedInstallment = selectedInstallmentNumber
+    ? installmentRows.find((installment) => installment.number === selectedInstallmentNumber)
+    : null;
+  const requestableInstallment = selectedInstallmentNumber
+    ? selectedInstallment?.status === "لم يرسل للمالك" ? selectedInstallment : null
+    : installmentRows.find((installment) => installment.status === "لم يرسل للمالك");
   const existingApproval = state.approvals.find(
     (approval) => approval.type === "دفعة مورد"
       && approval.request.startsWith(`${invoice.id} ·`)
@@ -2766,7 +2776,11 @@ function manageInvoice(id, alertStage = "") {
       <button class="button button-secondary" id="postpone-payment" type="button">تأجيل باتفاق المورد</button>
       ${existingApproval
         ? `<button class="button" type="button" id="view-payment-approval">${existingApproval.status === "معاد للمدير" ? "تعديل الطلب المعاد" : "عرض طلب الموافقة"}</button>`
-        : `<button class="button" id="request-payment" type="button">${requestableInstallment ? `إرسال القسط ${requestableInstallment.number} للمالك` : "طلب موافقة المالك"}</button>`}
+        : requestableInstallment
+          ? `<button class="button" id="request-payment" type="button">إرسال القسط ${requestableInstallment.number} للمالك</button>`
+          : !installmentRows.length
+            ? `<button class="button" id="request-payment" type="button">طلب موافقة المالك</button>`
+            : ""}
     `,
   });
   document.querySelector("#postpone-payment")?.addEventListener("click", () => {
