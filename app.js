@@ -189,9 +189,9 @@ function seedState() {
     alerts: [
       { id: 1, audience: ["manager", "owner"], severity: "critical", title: "دفعة مورد مستحقة اليوم", detail: "شركة النور للأقمشة · 31,500 جنيه · يجب اتخاذ قرار السداد اليوم", action: "إدارة دفعة اليوم", type: "payment-due", scheduleId: "SCH-1046", approvalId: "APR-310" },
       { id: 6, audience: ["manager"], severity: "approaching", title: "موعد دفعة مورد يقترب", detail: "المصرية للأقمشة · 22,000 جنيه · متبقي 5 أيام · تواصل مع المورد أو ابدأ الموافقة", action: "متابعة الموعد", type: "payment-approaching", scheduleId: "SCH-1047" },
-      { id: 2, audience: ["inventory"], severity: "urgent", title: "إعادة الطلب مطلوبة للحفاظ على التوفر", detail: "أنجيليكا · كحلي · ابدأ طلب التوريد وفق معدل المبيعات ومدة المورد", action: "إدارة إعادة الطلب", type: "reorder" },
+      { id: 2, audience: ["inventory"], severity: "urgent", title: "إعادة الطلب مطلوبة للحفاظ على التوفر", detail: "أنجيليكا · كحلي · ابدأ طلب التوريد وفق معدل المبيعات ومدة المورد", action: "إدارة إعادة الطلب", type: "reorder", inventoryId: 1 },
       { id: 3, audience: ["manager"], severity: "approaching", title: "موعد توريد يقترب", detail: "PO-1047 · المصرية للأقمشة · متوقع غدًا", action: "إدارة التوريد", type: "delivery" },
-      { id: 4, audience: ["inventory"], severity: "urgent", title: "إعادة طلب ستان ألتا مودا مطلوبة الآن", detail: "ستان ألتا مودا · أسود · ابدأ طلب التوريد للحفاظ على استمرارية التوفر", action: "إدارة إعادة الطلب", type: "reorder" },
+      { id: 4, audience: ["inventory"], severity: "urgent", title: "إعادة طلب ستان ألتا مودا مطلوبة الآن", detail: "ستان ألتا مودا · أسود · ابدأ طلب التوريد للحفاظ على استمرارية التوفر", action: "إدارة إعادة الطلب", type: "reorder", inventoryId: 5 },
       { id: 5, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "شيفون سادة · أوف وايت · الكمية 26 مترًا", action: "تحويل مخزون", type: "transfer" },
     ],
     sales: [
@@ -854,19 +854,24 @@ function renderInventory() {
           <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
           <tbody>
             ${state.inventory.map((item) => {
-              const total = item.showroom + item.warehouse;
-              const supplier = eligibleSuppliersFor(item.fabric)[0];
-              const leadTimeDemand = supplier ? item.rate * supplier.leadDays : null;
-              const reorderLevel = supplier
-                ? Math.ceil(leadTimeDemand + state.thresholds.lastPull)
-                : null;
-              const difference = reorderLevel === null ? null : total - reorderLevel;
+              const {
+                supplier,
+                totalAvailable: total,
+                reorderLevel,
+                difference,
+              } = calculateReorderMetrics(item);
               const needsReorder = difference !== null && difference <= 0;
               const reorderAlert = state.alerts.find((alert) =>
                 alert.type === "reorder"
                 && alert.audience.includes("inventory")
-                && alert.detail.includes(item.fabric)
-                && alert.detail.includes(item.color)
+                && (
+                  alert.inventoryId === item.id
+                  || (
+                    !alert.inventoryId
+                    && alert.detail.includes(item.fabric)
+                    && alert.detail.includes(item.color)
+                  )
+                )
               );
               return `
                 <tr>
@@ -1697,7 +1702,8 @@ function performScenarioStep() {
         "إعادة الطلب مطلوبة للحفاظ على استمرارية التوفر",
         `أنجيليكا · كحلي · التغطية الحالية ${plan.daysToStockout} أيام · المورد الموصى به يحتاج ${plan.leadDays} أيام · ابدأ الطلب الآن ليصل قبل نفاد الرصيد`,
         "إدارة إعادة الطلب",
-        "reorder"
+        "reorder",
+        { inventoryId: state.inventory[0].id }
       );
     },
     () => {
@@ -1798,7 +1804,7 @@ function resetScenario() {
   showToast("Workflow restarted", "All workflow records returned to their starting state.");
 }
 
-function addAlert(audience, severity, title, detail, action, type) {
+function addAlert(audience, severity, title, detail, action, type, linkedRecord = {}) {
   state.alerts.unshift({
     id: Date.now(),
     audience,
@@ -1807,6 +1813,7 @@ function addAlert(audience, severity, title, detail, action, type) {
     detail,
     action,
     type,
+    ...linkedRecord,
   });
 }
 
@@ -1816,8 +1823,14 @@ function createReorderFromInventory(itemId) {
   const existing = state.alerts.find(
     (alert) => alert.type === "reorder"
       && alert.audience.includes("inventory")
-      && alert.detail.includes(item.fabric)
-      && alert.detail.includes(item.color)
+      && (
+        alert.inventoryId === item.id
+        || (
+          !alert.inventoryId
+          && alert.detail.includes(item.fabric)
+          && alert.detail.includes(item.color)
+        )
+      )
   );
   if (existing) {
     manageAlert(existing.id);
@@ -1832,6 +1845,7 @@ function createReorderFromInventory(itemId) {
     detail: `${item.fabric} · ${item.color} · التغطية الحالية ${plan.daysToStockout} أيام · المورد الموصى به يحتاج ${plan.leadDays || "مدة غير مسجلة"} أيام`,
     action: "إدارة إعادة الطلب",
     type: "reorder",
+    inventoryId: item.id,
   };
   state.alerts.unshift(alert);
   saveState();
@@ -1844,10 +1858,29 @@ function eligibleSuppliersFor(fabric) {
     .sort((left, right) => left.leadDays - right.leadDays);
 }
 
-function buildReorderPlan(item) {
-  const eligibleSuppliers = eligibleSuppliersFor(item.fabric);
-  const supplier = eligibleSuppliers[0] || null;
+function calculateReorderMetrics(item) {
+  const supplier = eligibleSuppliersFor(item.fabric)[0] || null;
   const totalAvailable = item.showroom + item.warehouse;
+  const leadTimeDemand = supplier ? item.rate * supplier.leadDays : null;
+  const reorderLevel = supplier
+    ? Math.ceil(leadTimeDemand + state.thresholds.lastPull)
+    : null;
+  return {
+    supplier,
+    totalAvailable,
+    leadTimeDemand,
+    reorderLevel,
+    difference: reorderLevel === null ? null : totalAvailable - reorderLevel,
+  };
+}
+
+function buildReorderPlan(item) {
+  const {
+    supplier,
+    totalAvailable,
+    reorderLevel,
+    difference,
+  } = calculateReorderMetrics(item);
   const daysToStockout = Math.max(0, Math.floor(totalAvailable / item.rate));
   const reviewPeriodDays = 20;
   const leadDays = supplier?.leadDays || 0;
@@ -1859,6 +1892,8 @@ function buildReorderPlan(item) {
   return {
     supplier,
     totalAvailable,
+    reorderLevel,
+    difference,
     daysToStockout,
     leadDays: supplier?.leadDays || null,
     recommendedQuantity,
@@ -1874,9 +1909,14 @@ function manageAlert(id) {
     return;
   }
   if (state.role === "inventory" && alert.type === "reorder") {
-    const item = state.inventory.find(
-      (record) => alert.detail.includes(record.fabric) && alert.detail.includes(record.color)
-    ) || state.inventory[0];
+    const item = state.inventory.find((record) => record.id === alert.inventoryId)
+      || state.inventory.find(
+        (record) => alert.detail.includes(record.fabric) && alert.detail.includes(record.color)
+      );
+    if (!item) {
+      showToast("تعذر فتح إعادة الطلب", "لم يعد سجل المخزون المرتبط بهذا التنبيه متاحًا.");
+      return;
+    }
     const plan = buildReorderPlan(item);
     openModal({
       kicker: "مسؤولية مسؤول المخزون",
@@ -1884,7 +1924,10 @@ function manageAlert(id) {
       content: `
         <p>${alert.detail}</p>
         <div class="form-grid">
-          <label class="field"><span>رصيد المخزن الحالي</span><input value="${item.warehouse} متر" readonly></label>
+          <label class="field"><span>الرصيد الحالي الإجمالي</span><input value="${plan.totalAvailable} مترًا" readonly></label>
+          <label class="field"><span>تفصيل الرصيد</span><input value="المعرض ${item.showroom} مترًا + المخزن ${item.warehouse} مترًا" readonly></label>
+          <label class="field"><span>حد بدء إعادة الطلب</span><input value="${plan.reorderLevel} مترًا" readonly></label>
+          <label class="field"><span>الموقف من الحد</span><input value="${plan.difference < 0 ? `عجز ${Math.abs(plan.difference)} مترًا` : plan.difference === 0 ? "وصل إلى الحد" : `فائض ${plan.difference} مترًا`}" readonly></label>
           <label class="field"><span>متوسط المبيعات اليومية</span><input value="${item.rate} متر يوميًا" readonly></label>
           <label class="field"><span>تغطية المخزون الحالية</span><input value="${plan.daysToStockout} أيام" readonly></label>
           <label class="field"><span>المورد المؤهل الأسرع</span><input value="${plan.supplier?.name || "لا يوجد مورد مسجل لهذه الخامة"}" readonly></label>
@@ -2393,7 +2436,8 @@ function transferStock(id) {
         "إعادة الطلب مطلوبة للحفاظ على استمرارية التوفر",
         `${item.fabric} · ${item.color} · التغطية الحالية ${plan.daysToStockout} أيام · المورد الموصى به يحتاج ${plan.leadDays} أيام`,
         "إدارة إعادة الطلب",
-        "reorder"
+        "reorder",
+        { inventoryId: item.id }
       );
     }
     completeCurrentQueuedAlert(["transfer"]);
