@@ -876,7 +876,7 @@ function renderInventory() {
               return `
                 <tr>
                   <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
-                  <td>${total} مترًا</td>
+                  <td><strong>${total} مترًا</strong><br><small>المعرض ${item.showroom} + المخزن ${item.warehouse}</small></td>
                   <td>${supplier
                     ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا احتياطيًا</small>`
                     : `<strong>غير محسوب</strong><br><small>مدة التوريد غير متاحة</small>`}</td>
@@ -2075,8 +2075,9 @@ function showAvailability(event) {
       <h3>${item.fabric} · ${item.color}</h3>
       <p><strong>غرض الاستخدام:</strong> ${purpose?.label || "غير محدد"} · <strong>المطلوب:</strong> ${requestedMeters} مترًا</p>
       <div class="stock-split">
-        <div class="stock-value"><small>المعرض</small><strong>${item.showroom} متر</strong></div>
-        <div class="stock-value"><small>المخزن</small><strong>${item.warehouse} متر</strong></div>
+        <div class="stock-value"><small>رصيد المعرض</small><strong>${item.showroom} مترًا</strong></div>
+        <div class="stock-value"><small>رصيد المخزن فقط</small><strong>${item.warehouse} مترًا</strong></div>
+        <div class="stock-value"><small>إجمالي الرصيد الحالي</small><strong>${item.showroom + item.warehouse} مترًا</strong></div>
       </div>
       ${immediatelyAvailable
         ? `<div class="button-row" style="margin-top:16px">
@@ -2103,8 +2104,9 @@ function showAvailability(event) {
                 <h3>${alternative.fabric} · ${alternative.color}</h3>
                 <p>${alternative.color === color ? "نفس اللون المطلوب" : `لون بديل: ${alternative.color}`} · مناسب لـ ${purpose?.label || "الغرض المحدد"}</p>
                 <div class="stock-split">
-                  <div class="stock-value"><small>متاح في المعرض</small><strong>${alternative.showroom} متر</strong></div>
-                  <div class="stock-value"><small>متاح في المخزن</small><strong>${alternative.warehouse} متر</strong></div>
+                  <div class="stock-value"><small>رصيد المعرض</small><strong>${alternative.showroom} مترًا</strong></div>
+                  <div class="stock-value"><small>رصيد المخزن فقط</small><strong>${alternative.warehouse} مترًا</strong></div>
+                  <div class="stock-value"><small>إجمالي الرصيد الحالي</small><strong>${alternative.showroom + alternative.warehouse} مترًا</strong></div>
                 </div>
                 <button class="button button-secondary choose-alternative" type="button" data-id="${alternative.id}">اختيار هذا البديل وبدء البيع</button>
               </article>
