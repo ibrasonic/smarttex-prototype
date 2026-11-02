@@ -158,13 +158,13 @@ function seedState() {
     inventory: [
       { id: 1, fabric: "أنجيليكا", color: "كحلي", showroom: 30, warehouse: 80, reserve: 35, rate: 9.4, salePrice: 420, status: "متوفر" },
       { id: 2, fabric: "روزالين", color: "نبيتي", showroom: 64, warehouse: 190, reserve: 40, rate: 4.1, salePrice: 380, status: "متوفر" },
-      { id: 3, fabric: "شيفون سادة", color: "أوف وايت", showroom: 26, warehouse: 42, reserve: 30, rate: 7.8, salePrice: 290, status: "منخفض" },
+      { id: 3, fabric: "شيفون سادة", color: "أوف وايت", showroom: 24, warehouse: 42, reserve: 30, rate: 7.8, salePrice: 290, status: "منخفض" },
       { id: 4, fabric: "كتان فرنسي سادة", color: "زيتي", showroom: 92, warehouse: 260, reserve: 45, rate: 2.7, status: "متوفر" },
       { id: 5, fabric: "ستان ألتا مودا", color: "أسود", showroom: 18, warehouse: 0, reserve: 25, rate: 8.6, status: "حرج" },
       { id: 6, fabric: "شمواه سويدي", color: "أخضر زمردي", showroom: 48, warehouse: 105, reserve: 30, rate: 3.2, status: "متوفر" },
       { id: 7, fabric: "كريب رويال", color: "رمادي", showroom: 55, warehouse: 140, reserve: 35, rate: 5.6, status: "متوفر" },
-      { id: 8, fabric: "تول سترتش", color: "بيج", showroom: 44, warehouse: 95, reserve: 30, rate: 3.9, status: "متوفر" },
-      { id: 9, fabric: "جينز", color: "أزرق غامق", showroom: 38, warehouse: 120, reserve: 35, rate: 4.8, status: "متوفر" },
+      { id: 8, fabric: "تول سترتش", color: "بيج", showroom: 23, warehouse: 95, reserve: 30, rate: 3.9, status: "منخفض" },
+      { id: 9, fabric: "جينز", color: "أزرق غامق", showroom: 21, warehouse: 120, reserve: 35, rate: 4.8, status: "منخفض" },
       { id: 10, fabric: "ميلتون", color: "بني", showroom: 50, warehouse: 170, reserve: 40, rate: 4.4, status: "متوفر" },
       { id: 11, fabric: "صوف جوخ", color: "فحمي", showroom: 41, warehouse: 130, reserve: 35, rate: 6.2, status: "متوفر" },
       { id: 12, fabric: "SBH", color: "موف", showroom: 36, warehouse: 85, reserve: 30, rate: 3.5, status: "متوفر" },
@@ -192,7 +192,9 @@ function seedState() {
       { id: 2, audience: ["inventory"], severity: "urgent", title: "إعادة الطلب مطلوبة للحفاظ على التوفر", detail: "أنجيليكا · كحلي · ابدأ طلب التوريد وفق معدل المبيعات ومدة المورد", action: "إدارة إعادة الطلب", type: "reorder", inventoryId: 1 },
       { id: 3, audience: ["manager"], severity: "approaching", title: "موعد توريد يقترب", detail: "PO-1047 · المصرية للأقمشة · متوقع غدًا", action: "إدارة التوريد", type: "delivery" },
       { id: 4, audience: ["inventory"], severity: "urgent", title: "إعادة طلب ستان ألتا مودا مطلوبة الآن", detail: "ستان ألتا مودا · أسود · ابدأ طلب التوريد للحفاظ على استمرارية التوفر", action: "إدارة إعادة الطلب", type: "reorder", inventoryId: 5 },
-      { id: 5, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "شيفون سادة · أوف وايت · الكمية 26 مترًا", action: "تحويل مخزون", type: "transfer" },
+      { id: 5, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "شيفون سادة · أوف وايت · الكمية 24 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 3 },
+      { id: 7, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "تول سترتش · بيج · الكمية 23 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 8 },
+      { id: 8, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "جينز · أزرق غامق · الكمية 21 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 9 },
     ],
     sales: [
       { id: "SAL-2081", staff: "سلمى علي", fabric: "روزالين", color: "نبيتي", meters: 12, status: "بانتظار التأكيد", time: "10:22 ص" },
@@ -203,9 +205,9 @@ function seedState() {
       { id: "PO-1046", date: "18 أكتوبر 2026", supplier: "شركة النور للأقمشة", fabric: "ستان ألتا مودا", color: "أسود", quantity: 300, total: 94500, status: "معتمد", delivery: "28 أكتوبر" },
     ],
     invoices: [
-      { id: "SCH-1046", supplier: "شركة النور للأقمشة", po: "PO-1046", installments: 3, total: 94500, paid: 31500, due: "اليوم", status: "يستحق اليوم", cadence: "كل أسبوعين" },
-      { id: "SCH-1047", supplier: "المصرية للأقمشة", po: "PO-1047", installments: 3, total: 68200, paid: 0, due: "بعد 5 أيام", status: "يقترب", cadence: "كل شهر" },
-      { id: "SCH-1041", supplier: "المصرية للأقمشة", po: "PO-1041", installments: 1, total: 61000, paid: 61000, due: "مدفوع", status: "مدفوع", cadence: "دفعة واحدة" },
+      { id: "SCH-1046", supplier: "شركة النور للأقمشة", po: "PO-1046", installments: 3, total: 94500, paid: 31500, due: "اليوم", status: "يستحق اليوم", cadence: "كل أسبوعين", installmentRows: [{ number: 1, amount: 31500, due: "تم السداد", status: "مدفوع" }, { number: 2, amount: 31500, due: "اليوم", status: "قيد موافقة المالك" }, { number: 3, amount: 31500, due: "بعد أسبوعين", status: "لم يحن" }] },
+      { id: "SCH-1047", supplier: "المصرية للأقمشة", po: "PO-1047", installments: 3, total: 68200, paid: 0, due: "بعد 5 أيام", status: "يقترب", cadence: "كل شهر", installmentRows: [{ number: 1, amount: 22733, due: "بعد 5 أيام", status: "لم يرسل للمالك" }, { number: 2, amount: 22733, due: "بعد شهر", status: "لم يحن" }, { number: 3, amount: 22734, due: "بعد شهرين", status: "لم يحن" }] },
+      { id: "SCH-1041", supplier: "المصرية للأقمشة", po: "PO-1041", installments: 1, total: 61000, paid: 61000, due: "مدفوع", status: "مدفوع", cadence: "دفعة واحدة", installmentRows: [{ number: 1, amount: 61000, due: "تم السداد", status: "مدفوع" }] },
     ],
     approvals: [
       { id: "APR-310", type: "دفعة مورد", request: "SCH-1046 · الدفعة الثانية", amount: 31500, requestedBy: "محمد بدوي", status: "قيد الانتظار", comments: [{ by: "محمد بدوي", role: "المدير", time: "اليوم", text: "دفعة مستحقة اليوم وفق الجدول المتفق عليه." }] },
@@ -2716,12 +2718,15 @@ function openInstallmentSchedule(preselectedPoId = "") {
 
 function manageInvoice(id, alertStage = "") {
   const invoice = state.invoices.find((item) => item.id === id);
+  const installmentRows = invoice.installmentRows || [];
+  const requestableInstallment = installmentRows.find((installment) => installment.status === "لم يرسل للمالك");
   const existingApproval = state.approvals.find(
     (approval) => approval.type === "دفعة مورد"
       && approval.request.startsWith(`${invoice.id} ·`)
       && ["قيد الانتظار", "معاد للمدير"].includes(approval.status)
   );
   const approaching = alertStage === "approaching" || invoice.status === "يقترب";
+  const paidInFull = invoice.status === "مدفوع";
   openModal({
     title: `إدارة أقساط ${invoice.po}`,
     content: `
@@ -2729,36 +2734,58 @@ function manageInvoice(id, alertStage = "") {
         <div><p class="eyebrow">إجمالي أمر الشراء</p><strong>${money(invoice.total)}</strong></div>
         <div><p class="eyebrow">المبلغ المتبقي</p><strong>${money(invoice.total - invoice.paid)}</strong></div>
       </div>
-      <div class="callout ${approaching ? "" : "callout-warning"}">
-        <strong>${approaching ? "الموعد يقترب" : "الدفعة مستحقة اليوم"}</strong>
-        <p>${approaching
-          ? "تواصل مع المورد مبكرًا. يمكنك بدء الموافقة أو تسجيل موعد جديد تم الاتفاق عليه."
-          : "يجب متابعة قرار المالك اليوم. إذا أعاد الطلب، عدّل الموعد بعد الاتفاق مع المورد ثم أرسله مرة أخرى."}</p>
-      </div>
+      ${paidInFull ? "" : `<div class="callout ${approaching ? "" : "callout-warning"}">
+          <strong>${approaching ? "الموعد يقترب" : "الدفعة مستحقة اليوم"}</strong>
+          <p>${approaching
+            ? "تواصل مع المورد مبكرًا. يمكنك بدء الموافقة أو تسجيل موعد جديد تم الاتفاق عليه."
+            : "يجب متابعة قرار المالك اليوم. إذا أعاد الطلب، عدّل الموعد بعد الاتفاق مع المورد ثم أرسله مرة أخرى."}</p>
+        </div>`}
       <p><strong>الموعد الحالي:</strong> ${invoice.due}</p>
+      ${installmentRows.length ? `
+        <div class="table-wrap">
+          <table>
+            <caption>أقساط ${invoice.po}</caption>
+            <thead><tr><th>القسط</th><th>المبلغ</th><th>الموعد</th><th>الحالة</th></tr></thead>
+            <tbody>${installmentRows.map((installment) => `
+              <tr>
+                <td>${installment.number}</td>
+                <td>${money(installment.amount)}</td>
+                <td>${installment.due}</td>
+                <td><span class="status ${statusClass(installment.status)}">${installment.status}</span></td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        </div>
+      ` : ""}
       ${existingApproval ? `<div class="callout"><strong>حالة طلب الموافقة:</strong> ${existingApproval.status}</div>` : ""}
     `,
-    actions: `
+    actions: paidInFull
+      ? `<button class="button button-secondary" value="cancel">إغلاق</button>`
+      : `
       <button class="button button-secondary" value="cancel">إغلاق</button>
       <button class="button button-secondary" id="postpone-payment" type="button">تأجيل باتفاق المورد</button>
       ${existingApproval
         ? `<button class="button" type="button" id="view-payment-approval">${existingApproval.status === "معاد للمدير" ? "تعديل الطلب المعاد" : "عرض طلب الموافقة"}</button>`
-        : `<button class="button" id="request-payment" type="button">طلب موافقة المالك</button>`}
+        : `<button class="button" id="request-payment" type="button">${requestableInstallment ? `إرسال القسط ${requestableInstallment.number} للمالك` : "طلب موافقة المالك"}</button>`}
     `,
   });
-  document.querySelector("#postpone-payment").addEventListener("click", () => {
+  document.querySelector("#postpone-payment")?.addEventListener("click", () => {
     openPostponePayment(invoice);
   });
   document.querySelector("#request-payment")?.addEventListener("click", () => {
+    const installmentNumber = requestableInstallment?.number || "التالي";
+    const requestedAmount = requestableInstallment?.amount
+      || Math.min(invoice.total - invoice.paid, 31500);
     const approval = {
       id: `APR-${310 + state.approvals.length}`,
       type: "دفعة مورد",
-      request: `${invoice.id} · الدفعة التالية`,
-      amount: Math.min(invoice.total - invoice.paid, 31500),
+      request: `${invoice.id} · القسط ${installmentNumber}`,
+      amount: requestedAmount,
       requestedBy: roleProfiles.manager.name,
       status: "قيد الانتظار",
       comments: [{ by: roleProfiles.manager.name, role: roleProfiles.manager.label, time: "الآن", text: `طلب موافقة للدفعة المستحقة في ${invoice.due}.` }],
     };
+    if (requestableInstallment) requestableInstallment.status = "قيد موافقة المالك";
     state.approvals.unshift(approval);
     if (!state.alerts.some((alert) => alert.type === "payment-due" && alert.approvalId === approval.id)) {
       state.alerts.unshift({
@@ -2934,6 +2961,7 @@ function manageApproval(id) {
   const approval = state.approvals.find((item) => item.id === id);
   if (!approval) return;
   const pending = approval.status === "قيد الانتظار";
+  const canDecide = state.role === "owner" && pending;
   openModal({
     kicker: "تفاصيل طلب الموافقة",
     title: `${approval.type} · ${approval.id}`,
@@ -2947,12 +2975,12 @@ function manageApproval(id) {
       <h3>سجل التعليقات</h3>
       ${approvalCommentsMarkup(approval)}
     `,
-    actions: pending
+    actions: canDecide
       ? `<button class="button button-secondary" type="button" id="return-approval">إعادة للمدير</button>
          <button class="button" type="button" id="approve-request">موافقة</button>`
       : `<button class="button button-secondary" value="cancel">إغلاق</button>`,
   });
-  if (!pending) return;
+  if (!canDecide) return;
   document.querySelector("#approve-request").addEventListener("click", () => {
     decideApproval(id, "معتمد");
   });
