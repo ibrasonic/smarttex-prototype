@@ -195,6 +195,9 @@ function seedState() {
       { id: 5, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "شيفون سادة · أوف وايت · الكمية 24 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 3 },
       { id: 7, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "تول سترتش · بيج · الكمية 23 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 8 },
       { id: 8, audience: ["sales"], severity: "approaching", title: "المعرض يحتاج إلى تزويد", detail: "جينز · أزرق غامق · الكمية 21 مترًا", action: "تحويل مخزون", type: "transfer", inventoryId: 9 },
+      { id: 9, audience: ["manager"], severity: "critical", title: "قسط مورد مستحق اليوم", detail: "القاهرة للنسيج · 20,700 جنيه · لم يرسل للمالك", action: "إرسال القسط للمالك", type: "payment-due", scheduleId: "SCH-1045" },
+      { id: 10, audience: ["manager"], severity: "critical", title: "قسط مورد مستحق اليوم", detail: "دلتا للأقمشة · 24,000 جنيه · لم يرسل للمالك", action: "إرسال القسط للمالك", type: "payment-due", scheduleId: "SCH-1044" },
+      { id: 11, audience: ["manager"], severity: "critical", title: "قسط مورد مستحق اليوم", detail: "الشرق للنسيج · 16,000 جنيه · لم يرسل للمالك", action: "إرسال القسط للمالك", type: "payment-due", scheduleId: "SCH-1043" },
     ],
     sales: [
       { id: "SAL-2081", staff: "سلمى علي", fabric: "روزالين", color: "نبيتي", meters: 12, status: "بانتظار التأكيد", time: "10:22 ص" },
@@ -203,11 +206,17 @@ function seedState() {
     purchaseOrders: [
       { id: "PO-1047", date: "22 أكتوبر 2026", supplier: "المصرية للأقمشة", fabric: "شيفون سادة", color: "أوف وايت", quantity: 220, total: 68200, status: "بانتظار المورد", delivery: "غدًا" },
       { id: "PO-1046", date: "18 أكتوبر 2026", supplier: "شركة النور للأقمشة", fabric: "ستان ألتا مودا", color: "أسود", quantity: 300, total: 94500, status: "معتمد", delivery: "28 أكتوبر" },
+      { id: "PO-1045", date: "15 أكتوبر 2026", supplier: "القاهرة للنسيج", fabric: "كتان فرنسي سادة", color: "زيتي", quantity: 180, total: 62100, status: "تم الاستلام", delivery: "تم الاستلام" },
+      { id: "PO-1044", date: "12 أكتوبر 2026", supplier: "دلتا للأقمشة", fabric: "تول سترتش", color: "بيج", quantity: 240, total: 72000, status: "تم الاستلام", delivery: "تم الاستلام" },
+      { id: "PO-1043", date: "10 أكتوبر 2026", supplier: "الشرق للنسيج", fabric: "حرير ستان", color: "ذهبي", quantity: 150, total: 48000, status: "تم الاستلام", delivery: "تم الاستلام" },
     ],
     invoices: [
       { id: "SCH-1046", supplier: "شركة النور للأقمشة", po: "PO-1046", installments: 3, total: 94500, paid: 31500, due: "اليوم", status: "يستحق اليوم", cadence: "كل أسبوعين", installmentRows: [{ number: 1, amount: 31500, due: "تم السداد", status: "مدفوع" }, { number: 2, amount: 31500, due: "اليوم", status: "قيد موافقة المالك" }, { number: 3, amount: 31500, due: "بعد أسبوعين", status: "لم يحن" }] },
       { id: "SCH-1047", supplier: "المصرية للأقمشة", po: "PO-1047", installments: 3, total: 68200, paid: 0, due: "بعد 5 أيام", status: "يقترب", cadence: "كل شهر", installmentRows: [{ number: 1, amount: 22733, due: "بعد 5 أيام", status: "لم يرسل للمالك" }, { number: 2, amount: 22733, due: "بعد شهر", status: "لم يحن" }, { number: 3, amount: 22734, due: "بعد شهرين", status: "لم يحن" }] },
       { id: "SCH-1041", supplier: "المصرية للأقمشة", po: "PO-1041", installments: 1, total: 61000, paid: 61000, due: "مدفوع", status: "مدفوع", cadence: "دفعة واحدة", installmentRows: [{ number: 1, amount: 61000, due: "تم السداد", status: "مدفوع" }] },
+      { id: "SCH-1045", supplier: "القاهرة للنسيج", po: "PO-1045", installments: 3, total: 62100, paid: 0, due: "اليوم", status: "يستحق اليوم", cadence: "كل شهر", installmentRows: [{ number: 1, amount: 20700, due: "اليوم", status: "لم يرسل للمالك" }, { number: 2, amount: 20700, due: "بعد شهر", status: "لم يحن" }, { number: 3, amount: 20700, due: "بعد شهرين", status: "لم يحن" }] },
+      { id: "SCH-1044", supplier: "دلتا للأقمشة", po: "PO-1044", installments: 3, total: 72000, paid: 0, due: "اليوم", status: "يستحق اليوم", cadence: "كل شهر", installmentRows: [{ number: 1, amount: 24000, due: "اليوم", status: "لم يرسل للمالك" }, { number: 2, amount: 24000, due: "بعد شهر", status: "لم يحن" }, { number: 3, amount: 24000, due: "بعد شهرين", status: "لم يحن" }] },
+      { id: "SCH-1043", supplier: "الشرق للنسيج", po: "PO-1043", installments: 3, total: 48000, paid: 0, due: "اليوم", status: "يستحق اليوم", cadence: "كل شهر", installmentRows: [{ number: 1, amount: 16000, due: "اليوم", status: "لم يرسل للمالك" }, { number: 2, amount: 16000, due: "بعد شهر", status: "لم يحن" }, { number: 3, amount: 16000, due: "بعد شهرين", status: "لم يحن" }] },
     ],
     approvals: [
       { id: "APR-310", type: "دفعة مورد", request: "SCH-1046 · الدفعة الثانية", amount: 31500, requestedBy: "محمد بدوي", status: "قيد الانتظار", comments: [{ by: "محمد بدوي", role: "المدير", time: "اليوم", text: "دفعة مستحقة اليوم وفق الجدول المتفق عليه." }] },
@@ -216,6 +225,7 @@ function seedState() {
     receipts: [
       { id: "REC-778", po: "PO-1045", supplier: "القاهرة للنسيج", expected: 180, received: 175, result: "يوجد فرق", detail: "نقص 5 أمتار" },
       { id: "REC-777", po: "PO-1044", supplier: "دلتا للأقمشة", expected: 240, received: 240, result: "متطابق", detail: "تم التحقق تلقائيًا" },
+      { id: "REC-776", po: "PO-1043", supplier: "الشرق للنسيج", expected: 150, received: 150, result: "متطابق", detail: "تم التحقق تلقائيًا" },
     ],
     users: [
       { name: "مريم عادل", role: "مسؤول النظام", access: "الهوية والصلاحيات", status: "نشط" },
@@ -1075,7 +1085,7 @@ function renderInvoices() {
     ${intro(
       "إدارة أقساط أوامر الشراء والمدفوعات",
       "بعد تأكيد استلام أمر الشراء، يحدد المدير عدد الأقساط ومبالغها ومواعيدها، ثم يتابع كل دفعة حتى موافقة المالك والسداد.",
-      ""
+      `<button class="button" type="button" data-action="setup-installments">إعداد جدول أقساط</button>`
     )}
     <section class="panel">
       <div class="table-wrap">
@@ -1411,6 +1421,7 @@ function handleAction(action, data = {}) {
     "new-po-from-request": () => openNewPO(data.id),
     "manage-po": () => managePO(data.id),
     "manage-invoice": () => manageInvoice(data.id, "", Number(data.installment) || null),
+    "setup-installments": () => openInstallmentSchedule(),
     "receive-shipment": openReceiving,
     "resolve-receipt": () => resolveReceipt(data.id),
     "manage-approval": () => manageApproval(data.id),
@@ -2695,6 +2706,17 @@ function openInstallmentSchedule(preselectedPoId = "") {
     }
     const interval = Number(document.querySelector("#installment-interval").value);
     const unit = document.querySelector("#installment-unit").value;
+    const baseAmount = Math.floor(po.total / count);
+    const installmentRows = Array.from({ length: count }, (_, index) => ({
+      number: index + 1,
+      amount: index === count - 1
+        ? po.total - baseAmount * (count - 1)
+        : baseAmount,
+      due: custom.checked
+        ? customDates[index]
+        : `بعد ${interval * (index + 1)} ${unit}`,
+      status: index === 0 ? "لم يرسل للمالك" : "لم يحن",
+    }));
     const schedule = {
       id: `SCH-${po.id.replace("PO-", "")}`,
       supplier: po.supplier,
@@ -2702,11 +2724,12 @@ function openInstallmentSchedule(preselectedPoId = "") {
       installments: count,
       total: po.total,
       paid: 0,
-      due: custom.checked ? customDates[0] : `كل ${interval} ${unit}`,
+      due: installmentRows[0].due,
       status: "مجدول",
       cadence: custom.checked ? "تواريخ مخصصة" : `كل ${interval} ${unit}`,
       equalAmounts: document.querySelector("#equal-installment-amounts").checked,
       customDates,
+      installmentRows,
     };
     state.invoices = state.invoices.filter((item) => item.po !== po.id);
     state.invoices.unshift(schedule);
