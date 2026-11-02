@@ -844,16 +844,24 @@ function renderInventory() {
       `<button class="button" type="button" data-action="new-count">Start stock count</button>`
     )}
     <section class="panel">
+      <div class="callout">
+        <strong>كيف يُحسب حد بدء إعادة الطلب؟</strong>
+        <p>متوسط البيع اليومي × مدة أسرع مورد + احتياطي المخزون الذي حدده مسؤول النظام (${state.thresholds.lastPull} مترًا). إذا أصبح الرصيد الحالي أقل من هذا الحد، يبدأ إجراء إعادة الطلب.</p>
+      </div>
       <div class="table-wrap">
         <table>
           <caption>مقارنة الرصيد الحالي بمستوى إعادة الطلب</caption>
-          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>مستوى إعادة الطلب</th><th>الفرق</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
           <tbody>
             ${state.inventory.map((item) => {
               const total = item.showroom + item.warehouse;
               const supplier = eligibleSuppliersFor(item.fabric)[0];
-              const reorderLevel = Math.ceil(item.rate * (supplier?.leadDays || 0) + state.thresholds.lastPull);
-              const difference = total - reorderLevel;
+              const leadTimeDemand = supplier ? item.rate * supplier.leadDays : null;
+              const reorderLevel = supplier
+                ? Math.ceil(leadTimeDemand + state.thresholds.lastPull)
+                : null;
+              const difference = reorderLevel === null ? null : total - reorderLevel;
+              const needsReorder = difference !== null && difference <= 0;
               const reorderAlert = state.alerts.find((alert) =>
                 alert.type === "reorder"
                 && alert.audience.includes("inventory")
@@ -864,13 +872,23 @@ function renderInventory() {
                 <tr>
                   <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
                   <td>${total} مترًا</td>
-                  <td>${reorderLevel} مترًا</td>
-                  <td>${difference >= 0 ? `+${difference}` : difference} مترًا</td>
+                  <td>${supplier
+                    ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا احتياطيًا</small>`
+                    : `<strong>غير محسوب</strong><br><small>مدة التوريد غير متاحة</small>`}</td>
+                  <td>${difference === null
+                    ? "غير متاح"
+                    : difference < 0
+                      ? `<strong>عجز ${Math.abs(difference)} مترًا</strong>`
+                      : difference === 0
+                        ? "<strong>وصل إلى الحد</strong>"
+                        : `فائض ${difference} مترًا`}</td>
                   <td>${supplier ? `${supplier.leadDays} يومًا · ${supplier.name}` : "لا يوجد مورد مسجل"}</td>
-                  <td><span class="status ${difference <= 0 ? "status-critical" : difference <= state.thresholds.lastPull ? "status-urgent" : "status-approved"}">${difference <= 0 ? "ابدأ إعادة الطلب" : difference <= state.thresholds.lastPull ? "تحت المتابعة" : "مستقر"}</span></td>
-                  <td>${reorderAlert
+                  <td><span class="status ${!supplier || needsReorder ? "status-critical" : difference <= state.thresholds.lastPull ? "status-urgent" : "status-approved"}">${!supplier ? "فجوة مورد" : needsReorder ? "ابدأ إعادة الطلب" : difference <= state.thresholds.lastPull ? "تحت المتابعة" : "مستقر"}</span></td>
+                  <td>${!supplier
+                    ? "يجب تسجيل مورد"
+                    : reorderAlert
                     ? `<button class="button button-secondary" type="button" data-action="manage-alert" data-id="${reorderAlert.id}">إدارة إعادة الطلب</button>`
-                    : difference <= 0
+                    : needsReorder
                       ? `<button class="button button-secondary" type="button" data-action="create-reorder" data-id="${item.id}">إنشاء طلب إعادة</button>`
                       : "لا يوجد إجراء"}</td>
                 </tr>
