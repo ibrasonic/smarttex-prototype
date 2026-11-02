@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="نظام SmartTex الذكي لإدارة تجارة الأقمشة">
+  <title>SmartTex</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">انتقل إلى المحتوى الرئيسي</a>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="التنقل الرئيسي">
+      <a class="brand" href="#dashboard" data-route="dashboard" aria-label="الصفحة الرئيسية لنظام SmartTex">
+        <img class="brand-logo" src="logo.svg" alt="">
+        <span>
+          <strong>SmartTex</strong>
+          <small>إدارة ذكية للأقمشة</small>
+        </span>
+      </a>
+
+      <nav id="primary-nav"></nav>
+
+      <section class="sidebar-card" aria-labelledby="system-status-title">
+        <p class="eyebrow" id="system-status-title">حالة النظام</p>
+        <p><span class="system-status-dot" aria-hidden="true"></span> جميع الخدمات تعمل بصورة طبيعية</p>
+      </section>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">منصة إدارة العمليات</p>
+          <h1 id="page-title">لوحة التحكم</h1>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-button" id="notification-button" type="button"
+                  aria-label="فتح التنبيهات" title="فتح التنبيهات">
+            <span aria-hidden="true">!</span>
+            <span class="notification-count" id="notification-count">0</span>
+          </button>
+
+          <label class="role-switcher">
+            <span>تبديل المستخدم</span>
+            <select id="role-select">
+              <option value="admin">مسؤول النظام</option>
+              <option value="owner">المالك / الرئيس التنفيذي</option>
+              <option value="manager">المدير</option>
+              <option value="inventory">مسؤول المخزون</option>
+              <option value="sales">موظف المبيعات</option>
+            </select>
+          </label>
+
+          <div class="user-chip" aria-label="المستخدم الحالي">
+            <span class="avatar" id="user-initials" aria-hidden="true">AM</span>
+            <span>
+              <strong id="user-name">محمد بدوي</strong>
+              <small id="user-role">Manager</small>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog id="modal">
+    <form method="dialog" class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" id="modal-kicker">إجراء في سير العمل</p>
+          <h2 id="modal-title">الإجراء</h2>
+        </div>
+        <button class="icon-button close-button" value="cancel" aria-label="إغلاق النافذة">×</button>
+      </div>
+      <div id="modal-content"></div>
+      <div class="modal-actions" id="modal-actions"></div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
