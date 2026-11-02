@@ -846,17 +846,17 @@ function renderInventory() {
     <section class="panel">
       <div class="callout">
         <strong>كيف يُحسب حد بدء إعادة الطلب؟</strong>
-        <p>متوسط البيع اليومي × مدة أسرع مورد + احتياطي المخزون الذي حدده مسؤول النظام (${state.thresholds.lastPull} مترًا). إذا أصبح الرصيد الحالي أقل من هذا الحد، يبدأ إجراء إعادة الطلب.</p>
+        <p>متوسط البيع اليومي × مدة أسرع مورد + حد آخر سحبة من المخزن الذي حدده مسؤول النظام (${state.thresholds.lastPull} مترًا). تتم المقارنة مع رصيد المخزن فقط، ولا يدخل المعروض في المحل في حساب إعادة الطلب.</p>
       </div>
       <div class="table-wrap">
         <table>
           <caption>مقارنة الرصيد الحالي بمستوى إعادة الطلب</caption>
-          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي</th><th>المعروض في المحل</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
+          <thead><tr><th>الخامة واللون</th><th>الرصيد الحالي بالمخزن</th><th>المعروض في المحل</th><th>حد بدء إعادة الطلب</th><th>الموقف من الحد</th><th>مدة أسرع مورد</th><th>الحالة</th><th>الإجراء</th></tr></thead>
           <tbody>
             ${state.inventory.map((item) => {
               const {
                 supplier,
-                totalAvailable: total,
+                warehouseAvailable,
                 reorderLevel,
                 difference,
               } = calculateReorderMetrics(item);
@@ -876,10 +876,10 @@ function renderInventory() {
               return `
                 <tr>
                   <td><strong>${item.fabric}</strong><br><small>${item.color}</small></td>
-                  <td><strong>${total} مترًا</strong><br><small>المعرض ${item.showroom} + المخزن ${item.warehouse}</small></td>
+                  <td><strong>${warehouseAvailable} مترًا</strong><br><small>أساس حساب إعادة الطلب</small></td>
                   <td><strong>${item.showroom} مترًا</strong><br><small>يُخصم منه البيع المؤكد</small></td>
                   <td>${supplier
-                    ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا احتياطيًا</small>`
+                    ? `<strong>${reorderLevel} مترًا</strong><br><small>${item.rate} متر/يوم × ${supplier.leadDays} يومًا + ${state.thresholds.lastPull} مترًا حد آخر سحبة</small>`
                     : `<strong>غير محسوب</strong><br><small>مدة التوريد غير متاحة</small>`}</td>
                   <td>${difference === null
                     ? "غير متاح"
@@ -1861,28 +1861,28 @@ function eligibleSuppliersFor(fabric) {
 
 function calculateReorderMetrics(item) {
   const supplier = eligibleSuppliersFor(item.fabric)[0] || null;
-  const totalAvailable = item.showroom + item.warehouse;
+  const warehouseAvailable = item.warehouse;
   const leadTimeDemand = supplier ? item.rate * supplier.leadDays : null;
   const reorderLevel = supplier
     ? Math.ceil(leadTimeDemand + state.thresholds.lastPull)
     : null;
   return {
     supplier,
-    totalAvailable,
+    warehouseAvailable,
     leadTimeDemand,
     reorderLevel,
-    difference: reorderLevel === null ? null : totalAvailable - reorderLevel,
+    difference: reorderLevel === null ? null : warehouseAvailable - reorderLevel,
   };
 }
 
 function buildReorderPlan(item) {
   const {
     supplier,
-    totalAvailable,
+    warehouseAvailable,
     reorderLevel,
     difference,
   } = calculateReorderMetrics(item);
-  const daysToStockout = Math.max(0, Math.floor(totalAvailable / item.rate));
+  const daysToStockout = Math.max(0, Math.floor(warehouseAvailable / item.rate));
   const reviewPeriodDays = 20;
   const leadDays = supplier?.leadDays || 0;
   const demandUntilNextReview = item.rate * (leadDays + reviewPeriodDays);
@@ -1892,7 +1892,7 @@ function buildReorderPlan(item) {
   );
   return {
     supplier,
-    totalAvailable,
+    warehouseAvailable,
     reorderLevel,
     difference,
     daysToStockout,
@@ -1925,8 +1925,8 @@ function manageAlert(id) {
       content: `
         <p>${alert.detail}</p>
         <div class="form-grid">
-          <label class="field"><span>الرصيد الحالي الإجمالي</span><input value="${plan.totalAvailable} مترًا" readonly></label>
-          <label class="field"><span>تفصيل الرصيد</span><input value="المعرض ${item.showroom} مترًا + المخزن ${item.warehouse} مترًا" readonly></label>
+          <label class="field"><span>الرصيد الحالي بالمخزن</span><input value="${plan.warehouseAvailable} مترًا" readonly></label>
+          <label class="field"><span>المعروض في المحل</span><input value="${item.showroom} مترًا — لا يدخل في حساب إعادة الطلب" readonly></label>
           <label class="field"><span>حد بدء إعادة الطلب</span><input value="${plan.reorderLevel} مترًا" readonly></label>
           <label class="field"><span>الموقف من الحد</span><input value="${plan.difference < 0 ? `عجز ${Math.abs(plan.difference)} مترًا` : plan.difference === 0 ? "وصل إلى الحد" : `فائض ${plan.difference} مترًا`}" readonly></label>
           <label class="field"><span>متوسط المبيعات اليومية</span><input value="${item.rate} متر يوميًا" readonly></label>
@@ -2431,8 +2431,8 @@ function transferStock(id) {
     }
     item.showroom += meters;
     item.warehouse -= meters;
-    if (item.warehouse <= state.thresholds.lastPull) {
-      const plan = buildReorderPlan(item);
+    const plan = buildReorderPlan(item);
+    if (plan.difference !== null && plan.difference <= 0) {
       addAlert(
         ["inventory"],
         "urgent",
