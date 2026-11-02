@@ -1080,7 +1080,7 @@ function renderInvoices() {
       ? invoice.installmentRows
       : [{ number: 1, amount: invoice.total, due: invoice.due, status: invoice.status }];
     return rows.map((installment) => ({ invoice, installment }));
-  });
+  }).sort((left, right) => installmentDueOrder(left.installment.due) - installmentDueOrder(right.installment.due));
   return `
     ${intro(
       "إدارة أقساط أوامر الشراء والمدفوعات",
@@ -1109,6 +1109,34 @@ function renderInvoices() {
       </div>
     </section>
   `;
+}
+
+function installmentDueOrder(due) {
+  const normalizedDue = String(due).trim();
+  if (normalizedDue === "اليوم") return 0;
+  if (normalizedDue === "تم السداد" || normalizedDue === "مدفوع") return Number.MAX_SAFE_INTEGER;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDue)) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(`${normalizedDue}T00:00:00`);
+    return Math.max(0, Math.round((dueDate - today) / 86400000));
+  }
+
+  const relativeDue = normalizedDue.match(/^بعد (\d+) (يوم|أيام|أسبوع|أسابيع|شهر|أشهر)$/);
+  if (relativeDue) {
+    const unitDays = { يوم: 1, أيام: 1, أسبوع: 7, أسابيع: 7, شهر: 30, أشهر: 30 };
+    return Number(relativeDue[1]) * unitDays[relativeDue[2]];
+  }
+
+  const namedDueDates = {
+    "بعد يوم": 1,
+    "بعد أسبوع": 7,
+    "بعد أسبوعين": 14,
+    "بعد شهر": 30,
+    "بعد شهرين": 60,
+  };
+  return namedDueDates[normalizedDue] ?? Number.MAX_SAFE_INTEGER - 1;
 }
 
 function renderReceiving() {
